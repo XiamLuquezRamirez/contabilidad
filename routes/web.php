@@ -61,5 +61,6 @@ Route::post('/conceptos/pagosConceptos', [EmpresaController::class, 'pagosConcep
 Route::post('/conceptos/actualizarEstado', [EmpresaController::class, 'actualizarEstado'])->name('conceptos.actualizarEstado');
 
 
+Route::get('/compromiso/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');
 Route::get('/compromiso/listTodosCompromisos', [ApiController::class, 'listTodosCompromisos'])->name('compromiso.listTodosCompromisos');
 Route::post('/compromiso/cambiarEstadoCompromiso', [ApiController::class, 'cambiarEstadoCompromiso'])->name('compromiso.cambiarEstadoCompromiso');

@@ -9,8 +9,7 @@ use App\Models\Empresas;
 
 class ApiController extends Controller
 {
-    public function listTodosCompromisos(Request $request)
-    {
+    public function listTodosCompromisos(Request $request){
         $compromisos = DB::table('compromiso_empresa')
         ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')
         ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
@@ -23,8 +22,7 @@ class ApiController extends Controller
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
-    public function cambiarEstadoCompromiso(Request $request)
-    {
+    public function cambiarEstadoCompromiso(Request $request){
         $datosRecibidos = $request->all();
 
         $tipo = $datosRecibidos["tipo"];
@@ -65,5 +63,32 @@ class ApiController extends Controller
         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type');
     }
+
+    public function datosDashboard(){
+       
+        $primerDiaSemana = now()->startOfWeek();
+        $ultimoDiaSemana = now()->endOfWeek(); 
+
+        $compromisos1 = DB::table('compromiso_empresa')
+            ->whereBetween('fecha_presentacion', [$primerDiaSemana, $ultimoDiaSemana])
+            ->count();
+
+        $compromisos2 = DB::table('compromiso_empresa')
+            ->whereBetween('fecha_vencimiento', [$primerDiaSemana, $ultimoDiaSemana])
+            ->count();
+
+        
+        $compromisos = $compromisos1 + $compromisos2;
+        
+        return response()->json(
+            [
+                'compromisos_semana' => $compromisos
+            ]    
+        )
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+
 
 }
