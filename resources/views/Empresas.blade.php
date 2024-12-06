@@ -241,7 +241,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="container mt-4" style="min-width: 1200px">
+                    <div class="container mt-4">
                         <div class="card">
                             <div class="card-header">
                                 <h4 id="titEmpresaConcepto">Asignar compromiso </h4>
@@ -746,8 +746,6 @@
                                         "success");
                                 }
                             })
-
-
                     }
                 });
             });
@@ -775,11 +773,11 @@
                         data: null, // No está relacionado con datos específicos
                         orderable: false,
                         render: function(data, type, row) {
-                            return `
+                            return `<div style="display: flex; pading: 2px;">
                         <button class="btn btn-success btn-sm pagosConceptos-btn" data-id="${row.id}"><i class='fa fa-usd'></i> Pagos</button>
                         <button class="btn btn-warning btn-sm editarConcepto-btn" data-id="${row.id}"><i class='fa fa-edit'></i> Editar</button>
                         <button class="btn btn-danger btn-sm eliminarConcepto-btn" data-id="${row.id}"><i class='fa fa-trash'></i> Eliminar</button>
-                    `;
+                    </div>`;
                         }
                     }
                 ],

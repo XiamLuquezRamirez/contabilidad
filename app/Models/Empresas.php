@@ -74,6 +74,12 @@ class Empresas extends Model
                     ]);
 
                 $respuesta = $request['idRegistroConcepto'];
+
+                $compromiso = DB::connection('mysql')
+                ->table('pagos_pendientes')
+                ->where('id_concepto_asignado', $request['idRegistroConcepto'])
+                ->delete();
+
             }
         } catch (Exception $e) {
             // Manejo del error
