@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\UsuariosController;
+use App\Http\Controllers\ApiController;
 
 
 Route::get('/', function () {
@@ -67,3 +68,6 @@ Route::get('/Usuarios', function () {
 Route::post('/usuario/cargarUsuarios', [UsuariosController::class, 'cargarUsuarios'])->name('usuario.cargarUsuarios');
 
 
+Route::get('/compromiso/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');
+Route::get('/compromiso/listTodosCompromisos', [ApiController::class, 'listTodosCompromisos'])->name('compromiso.listTodosCompromisos');
+Route::post('/compromiso/cambiarEstadoCompromiso', [ApiController::class, 'cambiarEstadoCompromiso'])->name('compromiso.cambiarEstadoCompromiso');
