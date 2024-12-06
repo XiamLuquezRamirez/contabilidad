@@ -104,7 +104,8 @@ class Empresas extends Model
                     'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
                     'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                     'observacion' => $request['observacion'] ?? '',
-                    'estado' => $request['estado'] ?? ''
+                    'estado_venc' => $request['estadoPres'] ?? '',
+                    'estado' => $request['estadoVenc'] ?? ''
                 ]);
             } else {
                 $respuesta = DB::connection('mysql')->table('compromiso_empresa')
@@ -116,7 +117,8 @@ class Empresas extends Model
                         'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
                         'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                         'observacion' => $request['observacion'] ?? '',
-                        'estado' => $request['estado'] ?? ''
+                        'observacion' => $request['observacion'] ?? '',
+                        'estado_venc' => $request['estadoPres'] ?? ''
                     ]);
 
                 $respuesta = $request['idRegistroAsig'];
@@ -226,7 +228,8 @@ class Empresas extends Model
             ->where('compromiso_empresa.empresa', $idEmpresa)
             ->select(
                 'compromiso_empresa.id',
-                'compromiso_empresa.estado',
+                'compromiso_empresa.estado_pres',
+                'compromiso_empresa.estado_venc',
                 DB::raw('DATE_FORMAT(compromiso_empresa.fecha_presentacion, "%d/%m/%Y") as fecha_presentacion'),
                 DB::raw('DATE_FORMAT(compromiso_empresa.fecha_vencimiento, "%d/%m/%Y") as fecha_vencimiento'),
                 'compromisos.descripcion as descripcion'

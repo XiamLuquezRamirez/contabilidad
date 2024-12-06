@@ -311,6 +311,28 @@ class EmpresaController extends Controller
         }
     }
 
+    public function verificarConceptoEmpresa(Request $request)
+    {
+        if (Auth::check()) {
+            $concepto = $request->input('concepto');
+            $conceptoOriginal = $request->input('conceptoOriginal');
+            $idEmpresaConcepto = $request->input('idEmpresaConcepto');
+
+            if ($concepto === $conceptoOriginal) {
+                return response()->json(true); // El usuario es válido porque no ha cambiado
+            }
+
+            $empresaExistente = DB::table('conceptos_asignados')
+                ->where('id_concepto_pago', $concepto)
+                ->where('id_empresa', $idEmpresaConcepto)
+                ->exists();
+
+            return response()->json(!$empresaExistente);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
     public function infoEmpresa()
     {
         if (Auth::check()) {
@@ -646,6 +668,11 @@ class EmpresaController extends Controller
             $compromiso = DB::connection('mysql')
                 ->table('conceptos_asignados')
                 ->where('id', $idReg)
+                ->delete();
+
+            $compromisoPagos = DB::connection('mysql')
+                ->table('pagos_pendientes')
+                ->where('id_concepto_asignado', $idReg)
                 ->delete();
 
             if ($compromiso) {

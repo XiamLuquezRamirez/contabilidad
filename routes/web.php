@@ -20,6 +20,7 @@ Route::get('/Empresas', function () {
     return view('Empresas');
 });
 Route::post('/empresa/verificar-nit', [EmpresaController::class, 'verificarNIT'])->name('empresa.verificar-nit');
+Route::post('/empresa/verificarConceptoEmpresa', [EmpresaController::class, 'verificarConceptoEmpresa'])->name('empresa.verificarConceptoEmpresa');
 Route::post('/empresa/guardar', [EmpresaController::class, 'guardarEmpresa'])->name('form.guardarEmpresa');
 Route::post('/empresa/cargarEmpresas', [EmpresaController::class, 'cargarEmpresas'])->name('empresa.cargarEmpresas');
 Route::post('/empresa/infoEmpresa', [EmpresaController::class, 'infoEmpresa'])->name('empresa.infoEmpresa');

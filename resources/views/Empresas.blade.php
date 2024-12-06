@@ -169,6 +169,15 @@
                                                 name="diasNotificacionPres" min="1"
                                                 placeholder="Ingrese la cantidad de días" required>
                                         </div>
+                                        <div class="col-md-5">
+                                            <label for="estado">Estado:</label><br/>
+                                            <select class="form-select" id="estadoPres" name="estadoPres" required>
+                                                <option value="pendiente" selected>Pendiente</option>
+                                                <option value="presentado">Presentado</option>
+                                                <option value="pagado">Pagado</option>
+                                                <option value="vencido">Vencido</option>
+                                            </select>
+                                        </div>
                                         <div class="col-md-2">
                                             <label for="fechaVencimiento">F.vencimiento:</label><br />
                                             <input type="date" id="fechaVencimiento" name="fechaVencimiento">
@@ -180,20 +189,21 @@
                                                 name="diasNotificacionVenc" min="1"
                                                 placeholder="Ingrese la cantidad de días" required>
                                         </div>
-                                        <div class="col-md-12">
-                                            <label for="observacion">Observación:</label><br />
-                                            <textarea id="observacion" class="form-control" name="observacion" rows="4"
-                                                placeholder="Ingrese una observacion del compromiso"></textarea>
-                                        </div>
-                                        <div class="col-md-6 mt-2">
-                                            <label for="estado">Estado:</label>
-                                            <select class="form-select" id="estado" name="estado" required>
+                                        <div class="col-md-4">
+                                            <label for="estado">Estado:</label><br/>
+                                            <select class="form-select" id="estadoVenc" name="estadoVenc" required>
                                                 <option value="pendiente" selected>Pendiente</option>
                                                 <option value="presentado">Presentado</option>
                                                 <option value="pagado">Pagado</option>
                                                 <option value="vencido">Vencido</option>
                                             </select>
                                         </div>
+                                        <div class="col-md-12">
+                                            <label for="observacion">Observación:</label><br />
+                                            <textarea id="observacion" class="form-control" name="observacion" rows="4"
+                                                placeholder="Ingrese una observacion del compromiso"></textarea>
+                                        </div>
+                                        
                                     </div>
                                     <div class="card-footer" style="align-items:flex-end">
                                         <button type="button" id="newRegistroCompromiso" onclick="nuevoCompromiso(0)"
@@ -211,8 +221,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Descripción</th>
-                                                <th>Fecha de presentación</th>
-                                                <th>Fecha de vencimiento</th>
+                                                <th>F. presentación</th>
+                                                <th>Estado</th>
+                                                <th>F. vencimiento</th>
                                                 <th>Estado</th>
                                                 <th>Opciones</th>
                                             </tr>
@@ -252,6 +263,7 @@
                                     <input type="hidden" name="idRegistroConcepto" id="idRegistroConcepto" />
                                     <input type="hidden" name="accRegistroAsigConcepto" id="accRegistroAsigConcepto" />
                                     <input type="hidden" name="idEmpresaConcepto" id="idEmpresaConcepto" />
+                                    <input type="hidden" name="conceptoOriginal" id="conceptoOriginal" />
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="form-group">
@@ -439,11 +451,30 @@
                 }
             });
 
+            let urlVerConcepto = "{{ route('empresa.verificarConceptoEmpresa') }}"; 
             $("#formConcepto").validate({
                 rules: {
-
                     concepto: {
-                        required: true
+                        required: true,
+                        remote: {
+                            url: urlVerConcepto, // URL para verificar
+                            type: "post",
+                            data: {
+                                concepto: function() {
+                                    return $("#concepto").val();
+                                },
+                                conceptoOriginal: function() {
+                                    return $("#conceptoOriginal").val();
+                                },
+                                idEmpresaConcepto: function() {
+                                    return $("#idEmpresaConcepto").val() ||
+                                        null; // Enviar id si es edición
+                                },
+                                _token: function() {
+                                    return "{{ csrf_token() }}"; // Token CSRF para seguridad
+                                }
+                            }
+                        },
                     },
                     fechaInicio: {
                         required: true
@@ -455,7 +486,8 @@
                 messages: {
 
                     concepto: {
-                        required: "Por favor, seleccione el concepto."
+                        required: "Por favor, seleccione el concepto.",
+                        remote: "Este concepto ya está registrado para esta empresa.",
                     },
                     fechaInicio: {
                         required: "Por favor, seleccione la fecha de de pago"
@@ -597,10 +629,13 @@
                         data: 'fecha_presentacion'
                     },
                     {
+                        data: 'estado_pres'
+                    },
+                    {
                         data: 'fecha_vencimiento'
                     },
                     {
-                        data: 'estado'
+                        data: 'estado_venc'
                     },
                     {
                         data: null, // No está relacionado con datos específicos
@@ -695,7 +730,8 @@
                         document.getElementById("diasNotificacionVenc").value = data
                             .dias_anticipacion_ven
                         document.getElementById("observacion").value = data.observacion
-                        document.getElementById("estado").value = data.estado
+                        document.getElementById("estadoPres").value = data.estado_pres
+                        document.getElementById("estadoVenc").value = data.estado_venc
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -773,9 +809,9 @@
                         data: null, // No está relacionado con datos específicos
                         orderable: false,
                         render: function(data, type, row) {
-                            return `<div style="display: flex; pading: 2px;">
-                        <button class="btn btn-success btn-sm pagosConceptos-btn" data-id="${row.id}"><i class='fa fa-usd'></i> Pagos</button>
-                        <button class="btn btn-warning btn-sm editarConcepto-btn" data-id="${row.id}"><i class='fa fa-edit'></i> Editar</button>
+                            return `<div style="display: flex;">
+                        <button class="btn btn-success btn-sm pagosConceptos-btn mr-1" data-id="${row.id}"><i class='fa fa-usd'></i> Pagos</button>
+                        <button class="btn btn-warning btn-sm editarConcepto-btn mr-1" data-id="${row.id}"><i class='fa fa-edit'></i> Editar</button>
                         <button class="btn btn-danger btn-sm eliminarConcepto-btn" data-id="${row.id}"><i class='fa fa-trash'></i> Eliminar</button>
                     </div>`;
                         }
@@ -857,6 +893,7 @@
                         document.getElementById("idEmpresaConcepto").value = data.id_empresa
                         document.getElementById("idRegistroConcepto").value = data.id
                         document.getElementById("concepto").value = data.id_concepto_pago
+                        document.getElementById("conceptoOriginal").value = data.id_concepto_pago
                         document.getElementById("fechaInicio").value = data.fecha_inicio
                         document.getElementById("frecuencia").value = data.frecuencia_pago
                         document.getElementById("diasNotificacion").value = data.dias_anticipacion
