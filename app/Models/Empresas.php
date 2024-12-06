@@ -76,10 +76,9 @@ class Empresas extends Model
                 $respuesta = $request['idRegistroConcepto'];
 
                 $compromiso = DB::connection('mysql')
-                ->table('pagos_pendientes')
-                ->where('id_concepto_asignado', $request['idRegistroConcepto'])
-                ->delete();
-
+                    ->table('pagos_pendientes')
+                    ->where('id_concepto_asignado', $request['idRegistroConcepto'])
+                    ->delete();
             }
         } catch (Exception $e) {
             // Manejo del error
@@ -104,8 +103,8 @@ class Empresas extends Model
                     'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
                     'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                     'observacion' => $request['observacion'] ?? '',
-                    'estado_venc' => $request['estadoPres'] ?? '',
-                    'estado' => $request['estadoVenc'] ?? ''
+                    'estado_pres' => $request['estadoPres'] ?? '',
+                    'estado_venc' => $request['estadoVenc'] ?? ''
                 ]);
             } else {
                 $respuesta = DB::connection('mysql')->table('compromiso_empresa')
@@ -117,8 +116,8 @@ class Empresas extends Model
                         'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
                         'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                         'observacion' => $request['observacion'] ?? '',
-                        'observacion' => $request['observacion'] ?? '',
-                        'estado_venc' => $request['estadoPres'] ?? ''
+                        'estado_pres' => $request['estadoPres'] ?? '',
+                        'estado_venc' => $request['estadoVenc'] ?? ''
                     ]);
 
                 $respuesta = $request['idRegistroAsig'];
