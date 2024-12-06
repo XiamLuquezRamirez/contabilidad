@@ -60,4 +60,10 @@ Route::post('/conceptos/pagosConceptos', [EmpresaController::class, 'pagosConcep
 Route::post('/conceptos/actualizarEstado', [EmpresaController::class, 'actualizarEstado'])->name('conceptos.actualizarEstado');
 
 
+/// GESTIONAR USUARIOS
+Route::get('/Usuarios', function () {
+    return view('Usuarios');
+});
+Route::post('/usuario/cargarUsuarios', [UsuariosController::class, 'cargarUsuarios'])->name('usuario.cargarUsuarios');
+
 

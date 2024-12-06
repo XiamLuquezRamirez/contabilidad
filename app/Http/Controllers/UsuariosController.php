@@ -36,4 +36,6 @@ class UsuariosController extends Controller
         Auth::logout();
         return redirect("/")->with("error", "Su Sesión ha Terminado");
     }
+
+    
 }

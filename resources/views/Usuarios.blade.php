@@ -1,11 +1,11 @@
 @extends('Plantilla.principal')
-@section('title', 'Gestionar coneptos de pago')
+@section('title', 'Gestionar usuarios')
 @section('Contenido')
     <div class="breadcrumbs">
         <div class="col-sm-4">
             <div class="page-header float-left">
                 <div class="page-title">
-                    <h1>Gestionar coneptos de pago</h1>
+                    <h1>Gestionar usuarios</h1>
                 </div>
             </div>
         </div>
@@ -14,7 +14,7 @@
                 <div class="page-title">
                     <ol class="breadcrumb text-right">
                         <li><a href="{{ url('/') }}">Inicio</a></li>
-                        <li class="active">Gestionar coneptos de pago</li>
+                        <li class="active">Gestionar usuarios</li>
                     </ol>
                 </div>
             </div>
@@ -28,13 +28,13 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <strong class="card-title">Listado de coneptos de pago</strong>
+                            <strong class="card-title">Listado de usuariosago</strong>
                         </div>
                         <div class="card-body">
-                            <table id="bootstrap-data-table-concepto" class="table table-striped table-bordered">
+                            <table id="bootstrap-data-table-usuarios" class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th>Concepto</th>
+                                        <th>Nombre</th>
                                         <th>Opciones</th>
                                     </tr>
                                 </thead>
@@ -55,7 +55,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="largeModalLabel">Gestionar conceptos</h5>
+                    <h5 class="modal-title" id="largeModalLabel">Gestionar usuarios</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -64,26 +64,32 @@
                     <div class="container mt-4">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="titConcepto">Agregar concepto de pago</h4>
+                                <h4 id="titUsuario">Agregar usuario</h4>
                             </div>
                             <div class="card-body">
-                                <form id="formConcepto">
+                                <form id="formUsuario">
 
                                     <input type="hidden" name="idRegistro" id="idRegistro" />
                                     <input type="hidden" name="accRegistro" id="accRegistro" />
-
-
+                                    <input type="hidden" name="passwOriginal" id="passwOriginal" />
                                     <div class="form-group">
-                                        <label for="concepto">Concepto:</label>
-                                        <input type="text" class="form-control" id="concepto" name="concepto"
-                                            placeholder="Ingrese el concepto de pago">
+                                        <label for="nombre">Nombre:</label>
+                                        <input type="text" class="form-control" id="nombre" name="nombre"
+                                            placeholder="Ingrese el nombre">
                                     </div>
-                                    
-
                                     <div class="form-group">
-                                        <label for="nit">Observación:</label>
-                                        <textarea name="observacion" id="observacion" rows="3" placeholder="Observación..." class="form-control"></textarea>
+                                        <label for="nombre">Usuario:</label>
+                                        <input type="text" class="form-control" id="usuario" name="usuario"
+                                            placeholder="Ingrese el nombre del usuario">
                                     </div>
+                                    <div class="form-group">
+                                        <label for="nombre">Contraseña:</label>
+                                        <input type="password" class="form-control" id="pasw" name="pasw">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="nombre">Confirmar contraseña:</label>
+                                        <input type="password" class="form-control" id="confPasw" name="confPasw">
+                                    </div>                                  
                                 </form>
                             </div>
                         </div>
@@ -103,15 +109,12 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
-            let menuP = document.getElementById("parametros");
-            menuP.classList.add("active", "show");
-            let menuS = document.getElementById("parametrosConceptos");
-            menuS.classList.add("active");
+            let menuP = document.getElementById("usuario");
+            menuP.classList.add("active");
 
-            $("#formConcepto").validate({
+            $("#formUsuario").validate({
                 rules: {
-
-                    concepto: {
+                    nombre: {
                         required: true
                     }
                 },
@@ -120,7 +123,6 @@
                     concepto: {
                         required: "Por favor, ingrese el concepto."
                     }
-                   
                 },
                 submitHandler: function(form) {
                     guardarRegistro();
@@ -128,8 +130,7 @@
             });
 
             function cargarRegistros() {
-                let url = "{{ route('conceptos.cargarConceptos') }}"; 
-             
+                let url = "{{ route('usuario.cargarUsuarios') }}"; 
                 return new Promise((resolve, reject) => {
                     fetch(url, {
                             method: 'POST',
@@ -171,15 +172,19 @@
 
            
 
-            $('#bootstrap-data-table-concepto').DataTable({
+            $('#bootstrap-data-table-usuarios').DataTable({
                 lengthMenu: [
                     [10, 20, 50, -1],
                     [10, 20, 50, "Todos"]
                 ],
                 data: [], // Inicialmente vacío
                 columns: [{
-                        title: "Concepto",
-                        data: "nombre_concepto",
+                        title: "Nombre",
+                        data: "nombre_usuario",
+                    },
+                    {
+                        title: "Usuario",
+                        data: "login_usuario",
                     },
                     {
                         title: "Opciones",

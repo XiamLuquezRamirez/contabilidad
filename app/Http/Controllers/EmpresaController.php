@@ -216,6 +216,7 @@ class EmpresaController extends Controller
             'Mensual' => 1,
             'Bimestral' => 2,
             'Trimestral' => 3,
+            'Cuatrimestral' => 4,
             'Semestral' => 6,
             'Anual' => 12,
             default => throw new \Exception('Frecuencia no válida'),
