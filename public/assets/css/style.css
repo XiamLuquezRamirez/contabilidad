@@ -7263,3 +7263,17 @@ header .form-inline .search-form.close {
     padding: 5px;
   }
 }
+
+.icono-verde {
+  color: green;
+  margin-left: 8px;
+}
+
+.icono-oculto {
+  display: none;
+}
+
+.icono-rojo {
+  color: red;
+  margin-left: 8px;
+}

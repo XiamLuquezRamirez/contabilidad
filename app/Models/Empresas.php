@@ -47,6 +47,44 @@ class Empresas extends Model
         }
         return  $respuesta;
     }
+
+    public static function guardarAsigConcepto($request)
+    {
+        try {
+
+            if ($request['accRegistroAsigConcepto'] == 'guardar') {
+                $respuesta = DB::connection('mysql')->table('conceptos_asignados')->insertGetId([
+                    'id_empresa' => $request['idEmpresaConcepto']  ?? '',
+                    'id_concepto_pago' => $request['concepto'] ?? '',
+                    'fecha_inicio' => $request['fechaInicio'] ?? '',
+                    'frecuencia_pago' => $request['frecuencia'] ?? '',
+                    'dias_anticipacion' => $request['diasNotificacion'] ?? '',
+                    'observacion' => $request['observacionConcepto'] ?? ''
+                ]);
+            } else {
+                $respuesta = DB::connection('mysql')->table('conceptos_asignados')
+                    ->where('id', $request['idRegistroConcepto'])  // Identificar el registro a actualizar
+                    ->update([
+                        'id_empresa' => $request['idEmpresaConcepto']  ?? '',
+                        'id_concepto_pago' => $request['concepto'] ?? '',
+                        'fecha_inicio' => $request['fechaInicio'] ?? '',
+                        'frecuencia_pago' => $request['frecuencia'] ?? '',
+                        'dias_anticipacion' => $request['diasNotificacion'] ?? '',
+                        'observacion' => $request['observacionConcepto'] ?? ''
+                    ]);
+
+                $respuesta = $request['idRegistroConcepto'];
+            }
+        } catch (Exception $e) {
+            // Manejo del error
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al procesar el formulario: ' . $e->getMessage(),
+            ], 500);
+        }
+        return  $respuesta;
+    }
+
     public static function guardarAsigCompromiso($request)
     {
         try {
@@ -56,7 +94,9 @@ class Empresas extends Model
                     'empresa' => $request['idEmpresa']  ?? '',
                     'compromiso' => $request['compromiso'] ?? '',
                     'fecha_presentacion' => $request['fechaPresentacion'] ?? '',
+                    'dias_anticipacion_pre' => $request['diasNotificacionPres'] ?? '',
                     'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
+                    'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                     'observacion' => $request['observacion'] ?? '',
                     'estado' => $request['estado'] ?? ''
                 ]);
@@ -66,7 +106,9 @@ class Empresas extends Model
                     ->update([
                         'compromiso' => $request['compromiso'] ?? '',
                         'fecha_presentacion' => $request['fechaPresentacion'] ?? '',
+                        'dias_anticipacion_pre' => $request['diasNotificacionPres'] ?? '',
                         'fecha_vencimiento' => $request['fechaVencimiento'] ?? '',
+                        'dias_anticipacion_ven' => $request['diasNotificacionVenc'] ?? '',
                         'observacion' => $request['observacion'] ?? '',
                         'estado' => $request['estado'] ?? ''
                     ]);
@@ -86,6 +128,13 @@ class Empresas extends Model
     public static function listCompromiso()
     {
         return DB::connection('mysql')->table('compromisos')
+            ->where('estado', 'ACTIVO')
+            ->get();
+    }
+
+    public static function listConceptos()
+    {
+        return DB::connection('mysql')->table('conceptos_pago')
             ->where('estado', 'ACTIVO')
             ->get();
     }
@@ -124,6 +173,40 @@ class Empresas extends Model
         return  $respuesta;
     }
 
+    public static function guardarConcepto($request)
+    {
+        try {
+
+            if ($request['accRegistro'] == 'guardar') {
+
+                $respuesta = DB::connection('mysql')->table('conceptos_pago')->insertGetId([
+                    'nombre_concepto' => $request['concepto']  ?? '',
+                    'observacion' => $request['observacion'] ?? '',
+                    'estado' => 'ACTIVO'
+                ]);
+            } else {
+                $respuesta = DB::connection('mysql')->table('conceptos_pago')
+                    ->where('id', $request['idRegistro'])  // Identificar el registro a actualizar
+                    ->update([
+                        'nombre_concepto' => $request['concepto']  ?? '',
+                        'observacion' => $request['observacion'] ?? '',
+                    ]);
+
+                $respuesta = $request['idRegistro'];
+            }
+        } catch (Exception $e) {
+            // Manejo del error
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al procesar el formulario: ' . $e->getMessage(),
+            ], 500);
+        }
+
+
+        return  $respuesta;
+    }
+
+
     public static function listEmpresas()
     {
         return DB::connection('mysql')->table('empresas')
@@ -135,15 +218,34 @@ class Empresas extends Model
         $compromisos = DB::connection('mysql')->table('compromiso_empresa')
             ->leftJoin('compromisos', 'compromiso_empresa.compromiso', '=', 'compromisos.id') // Relación entre las tablas
             ->where('compromiso_empresa.empresa', $idEmpresa)
-            ->select('compromiso_empresa.id','compromiso_empresa.estado',
-            DB::raw('DATE_FORMAT(compromiso_empresa.fecha_presentacion, "%d/%m/%Y") as fecha_presentacion'),
-            DB::raw('DATE_FORMAT(compromiso_empresa.fecha_vencimiento, "%d/%m/%Y") as fecha_vencimiento'),
-            'compromisos.descripcion as descripcion') // Selecciona campos específicos
+            ->select(
+                'compromiso_empresa.id',
+                'compromiso_empresa.estado',
+                DB::raw('DATE_FORMAT(compromiso_empresa.fecha_presentacion, "%d/%m/%Y") as fecha_presentacion'),
+                DB::raw('DATE_FORMAT(compromiso_empresa.fecha_vencimiento, "%d/%m/%Y") as fecha_vencimiento'),
+                'compromisos.descripcion as descripcion'
+            ) // Selecciona campos específicos
             ->get();
 
-            return $compromisos;
+        return $compromisos;
     }
-    
+
+    public static function listAsigConcepto($idEmpresa)
+    {
+        $compromisos = DB::connection('mysql')->table('conceptos_asignados')
+            ->leftJoin('conceptos_pago', 'conceptos_asignados.id_concepto_pago', '=', 'conceptos_pago.id') // Relación entre las tablas
+            ->where('conceptos_asignados.id_empresa', $idEmpresa)
+            ->select(
+                'conceptos_asignados.id',
+                'conceptos_asignados.frecuencia_pago',
+                DB::raw('DATE_FORMAT(conceptos_asignados.fecha_inicio, "%d/%m/%Y") as fecha_inicio'),
+                'conceptos_pago.nombre_concepto as concepto'
+            ) // Selecciona campos específicos
+            ->get();
+
+        return $compromisos;
+    }
+
     public static function listCompromisos()
     {
         return DB::connection('mysql')->table('compromisos')

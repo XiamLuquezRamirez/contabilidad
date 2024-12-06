@@ -37,6 +37,12 @@ class EmpresaController extends Controller
         return response()->json($compromiso);
     }
 
+    public function listConcepto()
+    {
+        $conceptos = Empresas::listConceptos();
+        return response()->json($conceptos);
+    }
+
     public function cargarEmpresas()
     {
         $empresas = Empresas::listEmpresas();
@@ -48,9 +54,23 @@ class EmpresaController extends Controller
         $empresas = Empresas::listAsigCompromiso($idEmpresa);
         return response()->json($empresas);
     }
+
+    public function cargarAsigConcepto(Request $request)
+    {
+        $idEmpresa = $request->input('idEmpresa');
+        $empresas = Empresas::listAsigConcepto($idEmpresa);
+        return response()->json($empresas);
+    }
+
     public function cargarCompromisos()
     {
         $empresas = Empresas::listCompromisos();
+        return response()->json($empresas);
+    }
+
+    public function cargarConceptos()
+    {
+        $empresas = Empresas::listConceptos();
         return response()->json($empresas);
     }
 
@@ -114,6 +134,98 @@ class EmpresaController extends Controller
             return redirect("/")->with("error", "Su Sesión ha Terminado");
         }
     }
+
+    public function guardarAsigConcepto(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'estado' => 'error',
+                'mensaje' => 'Su sesión ha terminado.',
+            ], 401); // Código de error 401: No autorizado
+        }
+
+        $data = $request->all();
+        $respuesta = Empresas::guardarAsigConcepto($data);
+
+        if ($respuesta) {
+            // Recuperar el concepto asignado recién creado
+            $conceptos = DB::table('conceptos_asignados')
+                ->where('id', $respuesta)
+                ->first();
+
+
+            // Validar que el concepto existe
+            if (!$conceptos) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró el concepto asignado.',
+                ]);
+            }
+
+            // Validar fecha de inicio
+            if (empty($conceptos->fecha_inicio)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La fecha de inicio no está definida.',
+                ]);
+            }
+
+
+            try {
+                $fechaInicio = new \DateTime($conceptos->fecha_inicio);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Formato de fecha inválido: ' . $e->getMessage(),
+                ]);
+            }
+
+
+            $frecuencia = $conceptos->frecuencia_pago;
+            $fechaActual = new \DateTime();
+            $finDeAnio = (new \DateTime())->setDate($fechaInicio->format('Y'), 12, 31);
+
+            // Generar pagos pendientes
+            while ($fechaInicio <= $finDeAnio) {
+                DB::table('pagos_pendientes')->insert([
+                    'id_concepto_asignado' => $conceptos->id,
+                    'fecha_pago' => $fechaInicio->format('Y-m-d'),
+                    'estado' => 'pendiente',
+                ]);
+
+                // Incrementar fecha según la frecuencia
+                $fechaInicio = $this->incrementarFecha($fechaInicio, $frecuencia);
+            }
+
+            return response()->json([
+                'success' => true,
+                'id' => $respuesta,
+                'message' => 'Datos guardados y pagos pendientes generados.',
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al guardar los datos.',
+        ]);
+    }
+
+    private function incrementarFecha($fecha, $frecuencia)
+    {
+        $meses = match ($frecuencia) {
+            'Mensual' => 1,
+            'Bimestral' => 2,
+            'Trimestral' => 3,
+            'Semestral' => 6,
+            'Anual' => 12,
+            default => throw new \Exception('Frecuencia no válida'),
+        };
+
+        $fecha->modify("+$meses months");
+        return $fecha;
+    }
+
+
     public function guardarCompromiso(Request $request)
     {
         if (Auth::check()) {
@@ -144,6 +256,39 @@ class EmpresaController extends Controller
             return redirect("/")->with("error", "Su Sesión ha Terminado");
         }
     }
+
+    public function guardarConcepto(Request $request)
+    {
+        if (Auth::check()) {
+            $data = $request->all();
+            if (!Auth::check()) {
+                return response()->json([
+                    'estado' => 'error',
+                    'mensaje' => 'Su sesión ha terminado.',
+                ], 401); // Código de error 401: No autorizado
+            }
+
+            $respuesta = Empresas::guardarConcepto($data);
+
+
+            // Verificar el resultado y preparar la respuesta
+            if ($respuesta) {
+                $estado = true;
+            } else {
+                $estado = false;
+            }
+
+            // Retornar la respuesta en formato JSON
+            return response()->json([
+                'success' => $estado,
+                'id' => $respuesta,
+                'message' => 'Datos guardados'
+            ]);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
 
 
     public function verificarNIT(Request $request)
@@ -181,20 +326,86 @@ class EmpresaController extends Controller
         }
     }
 
-    public function infoAsigCompromiso()
+    public function infoAsigConceptos()
     {
         if (Auth::check()) {
-            $empresa = request()->get('idEmpresa');
+            $idConcepto = request()->get('idConcepto');
             // Verificar si el usuario ya está registrado
-            $empresa = DB::table('empresas')
-                ->where('id', $empresa)
+            $conceptos = DB::table('conceptos_asignados')
+                ->where('id', $idConcepto)
                 ->first();
 
-            return response()->json($empresa);
+            return response()->json($conceptos);
         } else {
             return redirect("/")->with("error", "Su Sesión ha Terminado");
         }
     }
+
+    public function pagosConceptos()
+    {
+        if (Auth::check()) {
+            $idConcepto = request()->get('idConcepto');
+            // Verificar si el usuario ya está registrado
+
+
+
+            $conceptos = DB::table('pagos_pendientes')
+                ->leftJoin('conceptos_asignados', 'conceptos_asignados.id', '=', 'pagos_pendientes.id_concepto_asignado') // Relación entre las tablas
+
+                ->where('id_concepto_asignado', $idConcepto)
+                ->select("pagos_pendientes.id", "pagos_pendientes.fecha_pago", "conceptos_asignados.frecuencia_pago", "pagos_pendientes.estado")
+                ->get();
+
+
+            return response()->json($conceptos);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
+    public function actualizarEstado(Request $request)
+    {
+        $idPago = $request->input('idPago');
+        $estado = $request->input('estado');
+
+        DB::table('pagos_pendientes')
+            ->where('id', $idPago)
+            ->update(['estado' => $estado]);
+
+        return response()->json(['message' => 'Estado actualizado correctamente']);
+    }
+
+
+    public function infoAsigCompromiso()
+    {
+        if (Auth::check()) {
+            $idComp = request()->get('idComp');
+            // Verificar si el usuario ya está registrado
+            $compromiso = DB::table('compromiso_empresa')
+                ->where('id', $idComp)
+                ->first();
+
+            return response()->json($compromiso);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
+    public function infoConceptos()
+    {
+        if (Auth::check()) {
+            $idConcepto = request()->get('idConcepto');
+            // Verificar si el usuario ya está registrado
+            $compromiso = DB::table('conceptos_pago')
+                ->where('id', $idConcepto)
+                ->first();
+
+            return response()->json($compromiso);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
     public function infoCompromiso()
     {
         if (Auth::check()) {
@@ -260,6 +471,7 @@ class EmpresaController extends Controller
             );
         }
     }
+
     public function eliminarCompromiso()
     {
         try {
@@ -268,7 +480,7 @@ class EmpresaController extends Controller
                 return response()->json(
                     [
                         'success' => false,
-                        'message' => 'ID de la empresa no proporcionada'
+                        'message' => 'ID del compromiso no proporcionado'
                     ],
                     400
                 );
@@ -287,14 +499,14 @@ class EmpresaController extends Controller
                 return response()->json(
                     [
                         'success' => true,
-                        'message' => 'Empresa eliminada correctamente'
+                        'message' => 'Compromiso eliminado correctamente'
                     ]
                 );
             } else {
                 return response()->json(
                     [
                         'success' => false,
-                        'message' => 'No se encontró la empresa o no se pudo eliminar'
+                        'message' => 'No se encontró el compromiso o no se pudo eliminar'
                     ],
                     404
                 );
@@ -304,7 +516,160 @@ class EmpresaController extends Controller
             return response()->json(
                 [
                     'success' => false,
-                    'message' => 'Ocurrió un error al intentar eliminar la empresa',
+                    'message' => 'Ocurrió un error al intentar eliminar el compromiso',
+                    'error' => $e->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
+    public function eliminarConcepto()
+    {
+        try {
+            $idReg = request()->input('idReg');
+            if (!$idReg) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'ID del concepto no proporcionado'
+                    ],
+                    400
+                );
+            }
+
+
+            $compromiso = DB::connection('mysql')
+                ->table('conceptos_pago')
+                ->where('id', $idReg)
+                ->update([
+                    'estado' => 'ELIMINADO',
+                ]);
+
+
+            if ($compromiso) {
+                return response()->json(
+                    [
+                        'success' => true,
+                        'message' => 'Concepto eliminado correctamente'
+                    ]
+                );
+            } else {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'No se encontró el concepto o no se pudo eliminar'
+                    ],
+                    404
+                );
+            }
+        } catch (\Exception $e) {
+            // Manejar cualquier error o excepción
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Ocurrió un error al intentar eliminar el concepto',
+                    'error' => $e->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
+    public function eliminarAsignacionCompromiso()
+    {
+
+
+        try {
+            $idReg = request()->input('idReg');
+            if (!$idReg) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'ID del compromiso asignado no proporcionado'
+                    ],
+                    400
+                );
+            }
+
+
+            $compromiso = DB::connection('mysql')
+                ->table('compromiso_empresa')
+                ->where('id', $idReg)
+                ->delete();
+
+            if ($compromiso) {
+                return response()->json(
+                    [
+                        'success' => true,
+                        'message' => 'Compromiso asignado eliminado correctamente'
+                    ]
+                );
+            } else {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'No se encontró el compromiso asignado o no se pudo eliminar'
+                    ],
+                    404
+                );
+            }
+        } catch (\Exception $e) {
+            // Manejar cualquier error o excepción
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Ocurrió un error al intentar eliminar el compromiso asignado',
+                    'error' => $e->getMessage()
+                ],
+                500
+            );
+        }
+    }
+    public function eliminarAsignacionConcepto()
+    {
+
+
+        try {
+            $idReg = request()->input('idReg');
+            if (!$idReg) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'ID del concepto asignado no proporcionado'
+                    ],
+                    400
+                );
+            }
+
+
+            $compromiso = DB::connection('mysql')
+                ->table('conceptos_asignados')
+                ->where('id', $idReg)
+                ->delete();
+
+            if ($compromiso) {
+                return response()->json(
+                    [
+                        'success' => true,
+                        'message' => 'Concepto asignado eliminado correctamente'
+                    ]
+                );
+            } else {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'No se encontró el concepto asignado o no se pudo eliminar'
+                    ],
+                    404
+                );
+            }
+        } catch (\Exception $e) {
+            // Manejar cualquier error o excepción
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Ocurrió un error al intentar eliminar el concepto asignado',
                     'error' => $e->getMessage()
                 ],
                 500
