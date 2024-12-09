@@ -25,7 +25,7 @@
                     </ul>
                 </li>
 
-                <li id="usuario">
+                <li id="usuarioMenu">
                     <a href="{{ url('/Usuarios') }}"> <i class="menu-icon fa fa-users"></i>Gestionar usuarios </a>
                 </li>
             </ul>

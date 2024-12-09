@@ -68,6 +68,8 @@ Route::get('/Usuarios', function () {
 Route::post('/usuario/cargarUsuarios', [UsuariosController::class, 'cargarUsuarios'])->name('usuario.cargarUsuarios');
 Route::post('/usuario/verificar-usuario', [UsuariosController::class, 'verificarUsuario'])->name('usuario.verificar-usuario');
 Route::post('/usuario/guardar', [UsuariosController::class, 'guardarUsuario'])->name('form.guardarUsusario');
+Route::post('/usuario/infoUsuarios', [UsuariosController::class, 'infoUsuarios'])->name('usuario.infoUsuarios');
+Route::post('/usuario/eliminar', [EmpresaController::class, 'eliminarUsuario'])->name('usuario.eliminar');
 
 
 Route::get('/compromiso/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');

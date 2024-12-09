@@ -74,6 +74,58 @@ class EmpresaController extends Controller
         return response()->json($empresas);
     }
 
+    public function eliminarUsuario()
+    {
+        try {
+            $idReg = request()->input('idReg');
+            if (!$idReg) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'ID del concepto no proporcionado'
+                    ],
+                    400
+                );
+            }
+
+
+            $compromiso = DB::connection('mysql')
+                ->table('users')
+                ->where('id', $idReg)
+                ->update([
+                    'estado' => 'ELIMINADO',
+                ]);
+
+
+            if ($compromiso) {
+                return response()->json(
+                    [
+                        'success' => true,
+                        'message' => 'Usuario eliminado correctamente'
+                    ]
+                );
+            } else {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'No se encontró el Usuario o no se pudo eliminar'
+                    ],
+                    404
+                );
+            }
+        } catch (\Exception $e) {
+            // Manejar cualquier error o excepción
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'Ocurrió un error al intentar eliminar el Usuario',
+                    'error' => $e->getMessage()
+                ],
+                500
+            );
+        }
+    }
+
     public function guardarEmpresa(Request $request)
     {
         if (Auth::check()) {

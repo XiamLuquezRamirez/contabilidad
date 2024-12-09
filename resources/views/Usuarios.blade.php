@@ -85,6 +85,10 @@
                                         <input type="text" class="form-control" id="usuario" name="usuario"
                                             placeholder="Ingrese el nombre del usuario">
                                     </div>
+                                    
+                                    <div style="display: none;" id="div-cambioPasw" class="form-group ml-4">
+                                        <Label><input type="checkbox" id="changCon" onchange="habilitarPasw()" name="changCon" value="option1" class="form-check-input">Cambiar contraseña</Label>
+                                    </div>
                                     <div class="form-group">
                                         <label for="nombre">Contraseña:</label>
                                         <input type="password" class="form-control" id="pasw" name="pasw">
@@ -112,7 +116,7 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", async function() {
-            let menuP = document.getElementById("usuario");
+            let menuP = document.getElementById("usuarioMenu");
             menuP.classList.add("active");
 
             let url = "{{ route('usuario.verificar-usuario') }}";
@@ -286,7 +290,7 @@
             });
 
             $('#bootstrap-data-table-usuarios').on('click', '.editar-btn', function() {
-                const idConcepto = $(this).data('id');
+                const idUsuario = $(this).data('id');
 
                 var modal = new bootstrap.Modal(document.getElementById("largeModal"), {
                     backdrop: 'static',
@@ -295,7 +299,7 @@
                 modal.show();
                 document.getElementById("accRegistro").value = "editar";
 
-                let url = "{{ route('conceptos.infoConceptos') }}";
+                let url = "{{ route('usuario.infoUsuarios') }}";
 
                 fetch(url, {
                         method: 'POST',
@@ -305,7 +309,7 @@
                                 .getAttribute('content')
                         },
                         body: JSON.stringify({
-                            idConcepto: idConcepto
+                            idUsuario: idUsuario
                         })
                     })
                     .then(response => {
@@ -316,8 +320,13 @@
                     })
                     .then(data => {
 
-                        document.getElementById("concepto").value = data.nombre_concepto
-                        document.getElementById("observacion").value = data.observacion
+                        document.getElementById('pasw').setAttribute('disabled', 'disabled')
+                        document.getElementById('confPasw').setAttribute('disabled', 'disabled')
+                         document.getElementById("div-cambioPasw").style.display = ''
+
+                        document.getElementById("nombre").value = data.nombre_usuario
+                        document.getElementById("usuario").value = data.login_usuario
+                        document.getElementById("usuarioOriginal").value = data.login_usuario
                         document.getElementById("idRegistro").value = data.id
 
                         document.getElementById('saveRegistro').removeAttribute('disabled')
@@ -346,7 +355,7 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let url = "{{ route('conceptos.eliminar') }}";
+                        let url = "{{ route('usuario.eliminar') }}";
 
                         fetch(url, {
                                 method: 'POST',
@@ -397,7 +406,11 @@
             document.getElementById('accRegistro').value = 'guardar'
             document.getElementById('saveRegistro').removeAttribute('disabled')
             document.getElementById('newRegistro').style.display = 'none'
-            document.getElementById('cancelRegistro').style.display = 'initial'
+            document.getElementById('cancelRegistro').style.display = 'initial'  
+            document.getElementById("div-cambioPasw").style.display = 'none'
+
+            document.getElementById('pasw').removeAttribute('disabled', 'disabled')
+            document.getElementById('confPasw').removeAttribute('disabled', 'disabled')
         }
 
         function recargarDataTable() {
@@ -471,6 +484,19 @@
                     .catch(error => {
                         console.error("Error al enviar los datos:", error);
                     });
+            }
+        }
+
+        
+        function habilitarPasw() {
+            const pasw = document.getElementById("pasw")
+
+            if (pasw.disabled) {
+                document.getElementById('pasw').removeAttribute('disabled', 'disabled')
+                document.getElementById('confPasw').removeAttribute('disabled', 'disabled')
+            } else {
+                document.getElementById('pasw').setAttribute('disabled', 'disabled')
+                document.getElementById('confPasw').setAttribute('disabled', 'disabled')
             }
         }
     </script>

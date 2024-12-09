@@ -52,6 +52,22 @@ class UsuariosController extends Controller
     }
 
     
+    public function infoUsuarios()
+    {
+        if (Auth::check()) {
+            $idUsuario = request()->get('idUsuario');
+            // Verificar si el usuario ya está registrado
+            $compromiso = DB::table('users')
+                ->where('id', $idUsuario)
+                ->first();
+
+            return response()->json($compromiso);
+        } else {
+            return redirect("/")->with("error", "Su Sesión ha Terminado");
+        }
+    }
+
+    
     public function verificarUsuario(Request $request)
     {
         if (Auth::check()) {
