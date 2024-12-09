@@ -85,6 +85,27 @@ class EmpresaController extends Controller
                 ], 401); // Código de error 401: No autorizado
             }
 
+
+            if (isset($data['logoEmpresa'])) {
+                $archivo = $data['logoEmpresa'];
+                $nombreOriginal = $archivo->getClientOriginalName();
+    
+                // Generar un nombre único para el archivo
+                $prefijo = substr(md5(uniqid(rand())), 0, 6);
+                $nombreArchivo = self::sanear_string($prefijo . '_' . $nombreOriginal);
+    
+                // Guardar el archivo en la ruta especificada
+                $archivo->move(public_path() . '/images/empresas/', $nombreArchivo);
+                $data['img'] = $nombreArchivo;
+            } else {
+                if ($data['accRegistro'] == 'guardar') {
+                    $data['img'] = "default.jpg";
+                } else {
+                    $data['img'] = $data['logoCargado'];
+                }
+            }
+
+
             $respuesta = Empresas::guardar($data);
 
             // Verificar el resultado y preparar la respuesta
@@ -324,14 +345,18 @@ class EmpresaController extends Controller
             $concepto = $request->input('concepto');
             $conceptoOriginal = $request->input('conceptoOriginal');
             $idEmpresaConcepto = $request->input('idEmpresaConcepto');
+            $fecha = $request->input('fechaInicio');
 
             if ($concepto === $conceptoOriginal) {
                 return response()->json(true); // El usuario es válido porque no ha cambiado
             }
 
+            $anio = (new \DateTime($fecha))->format('Y');
+           
             $empresaExistente = DB::table('conceptos_asignados')
                 ->where('id_concepto_pago', $concepto)
                 ->where('id_empresa', $idEmpresaConcepto)
+                ->whereYear('fecha_inicio', $anio)
                 ->exists();
 
             return response()->json(!$empresaExistente);
@@ -709,5 +734,91 @@ class EmpresaController extends Controller
                 500
             );
         }
+    }
+
+    public function sanear_string($string)
+    {
+
+        $string = trim($string);
+
+        $string = str_replace(
+            array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
+            array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
+            $string
+        );
+
+        $string = str_replace(
+            array('é', 'è', 'ë', 'ê', 'É', 'È', 'Ê', 'Ë'),
+            array('e', 'e', 'e', 'e', 'E', 'E', 'E', 'E'),
+            $string
+        );
+
+        $string = str_replace(
+            array('í', 'ì', 'ï', 'î', 'Í', 'Ì', 'Ï', 'Î'),
+            array('i', 'i', 'i', 'i', 'I', 'I', 'I', 'I'),
+            $string
+        );
+
+        $string = str_replace(
+            array('ó', 'ò', 'ö', 'ô', 'Ó', 'Ò', 'Ö', 'Ô'),
+            array('o', 'o', 'o', 'o', 'O', 'O', 'O', 'O'),
+            $string
+        );
+
+        $string = str_replace(
+            array('ú', 'ù', 'ü', 'û', 'Ú', 'Ù', 'Û', 'Ü'),
+            array('u', 'u', 'u', 'u', 'U', 'U', 'U', 'U'),
+            $string
+        );
+
+        $string = str_replace(
+            array('ñ', 'Ñ', 'ç', 'Ç'),
+            array('n', 'N', 'c', 'C'),
+            $string
+        );
+
+        //Esta parte se encarga de eliminar cualquier caracter extraño
+        $string = str_replace(
+            array(
+                "¨",
+                "º",
+                "-",
+                "~",
+                "",
+                "@",
+                "|",
+                "!",
+                "·",
+                "$",
+                "%",
+                "&",
+                "/",
+                "(",
+                ")",
+                "?",
+                "'",
+                " h¡",
+                "¿",
+                "[",
+                "^",
+                "<code>",
+                "]",
+                "+",
+                "}",
+                "{",
+                "¨",
+                "´",
+                ">",
+                "< ",
+                ";",
+                ",",
+                ":",
+                " ",
+            ),
+            '',
+            $string
+        );
+
+        return $string;
     }
 }
