@@ -185,7 +185,20 @@ class EmpresaController extends Controller
             $fechaActual = new \DateTime();
             $finDeAnio = (new \DateTime())->setDate($fechaInicio->format('Y'), 12, 31);
 
-            // Generar pagos pendientes
+            $fechaOriginal = new \DateTime($conceptos->fecha_inicio);
+            $diaOriginal = $fechaInicio->format('d');
+            $frecuencia = match ($frecuencia) {
+                'Mensual' => 1,
+                'Bimestral' => 2,
+                'Trimestral' => 3,
+                'Cuatrimestral' => 4,
+                'Semestral' => 6,
+                'Anual' => 12,
+                default => throw new \Exception('Frecuencia no válida'),
+            };
+            $meses_sumar = 0;
+
+    
             while ($fechaInicio <= $finDeAnio) {
                 DB::table('pagos_pendientes')->insert([
                     'id_concepto_asignado' => $conceptos->id,
@@ -193,8 +206,8 @@ class EmpresaController extends Controller
                     'estado' => 'pendiente',
                 ]);
 
-                // Incrementar fecha según la frecuencia
-                $fechaInicio = $this->incrementarFecha($fechaInicio, $frecuencia);
+                $meses_sumar = $meses_sumar + $frecuencia;
+                $fechaInicio = $this->incrementarFecha(clone $fechaOriginal, $meses_sumar, $diaOriginal);
             }
 
             return response()->json([
@@ -210,22 +223,15 @@ class EmpresaController extends Controller
         ]);
     }
 
-    private function incrementarFecha($fecha, $frecuencia)
+    private function incrementarFecha($fecha, $meses_sumar, $diaOriginal)
     {
-        $meses = match ($frecuencia) {
-            'Mensual' => 1,
-            'Bimestral' => 2,
-            'Trimestral' => 3,
-            'Cuatrimestral' => 4,
-            'Semestral' => 6,
-            'Anual' => 12,
-            default => throw new \Exception('Frecuencia no válida'),
-        };
-
-        $fecha->modify("+$meses months");
+        $fecha1 = $fecha;
+        $fecha->modify("+$meses_sumar months");
+        if ($fecha->format('d') != $diaOriginal) {
+            $fecha->modify('last day of previous month');
+        }
         return $fecha;
     }
-
 
     public function guardarCompromiso(Request $request)
     {

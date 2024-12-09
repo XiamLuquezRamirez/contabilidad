@@ -329,7 +329,7 @@
         });
 
         function cancelRegistro() {
-            const formCompromiso = document.getElementById('formConcepto');
+            const formConcepto = document.getElementById('formConcepto');
             formConcepto.reset();
             document.getElementById('titConcepto').innerText = 'Agregar Concepto';
             document.getElementById('accRegistro').value = 'guardar'

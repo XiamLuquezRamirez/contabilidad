@@ -28,13 +28,14 @@
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
-                            <strong class="card-title">Listado de usuariosago</strong>
+                            <strong class="card-title">Listado de usuarios</strong>
                         </div>
                         <div class="card-body">
                             <table id="bootstrap-data-table-usuarios" class="table table-striped table-bordered">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
+                                        <th>Uusuario</th>
                                         <th>Opciones</th>
                                     </tr>
                                 </thead>
@@ -72,6 +73,8 @@
                                     <input type="hidden" name="idRegistro" id="idRegistro" />
                                     <input type="hidden" name="accRegistro" id="accRegistro" />
                                     <input type="hidden" name="passwOriginal" id="passwOriginal" />
+                                    <input type="hidden" name="usuarioOriginal" id="usuarioOriginal" />
+
                                     <div class="form-group">
                                         <label for="nombre">Nombre:</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre"
@@ -89,7 +92,7 @@
                                     <div class="form-group">
                                         <label for="nombre">Confirmar contraseña:</label>
                                         <input type="password" class="form-control" id="confPasw" name="confPasw">
-                                    </div>                                  
+                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -112,16 +115,65 @@
             let menuP = document.getElementById("usuario");
             menuP.classList.add("active");
 
+            let url = "{{ route('usuario.verificar-usuario') }}";
+
             $("#formUsuario").validate({
                 rules: {
                     nombre: {
                         required: true
-                    }
+                    },
+                    usuario: {
+                        required: true,
+                        remote: {
+                            url: url, // URL para la verificación
+                            type: "post",
+                            data: {
+                                usuario: function() {
+                                    return $("#usuario").val()
+                                },
+                                usuarioOriginal: function() {
+                                    return $("#usuarioOriginal")
+                                        .val() // Usuario original en caso de edición
+                                },
+                                _token: function() {
+                                    return "{{ csrf_token() }}" // Genera el token CSRF
+                                }
+                            },
+                            // Validar solo si el usuario cambió
+                            beforeSend: function(xhr, settings) {
+                                if ($("#usuario").val() === $("#usuarioOriginal").val()) {
+                                    // Cancelar la validación si el usuario no cambió
+                                    xhr.abort()
+                                }
+                            }
+                        }
+                    },
+                
+                pasw: {
+                    required: true,
+                    minlength: 4
+                },
+                confPasw: {
+                    required: true,
+                    equalTo: "#pasw"
+                },
                 },
                 messages: {
 
-                    concepto: {
-                        required: "Por favor, ingrese el concepto."
+                    nombre: {
+                        required: "Por favor, ingresa el nombre del usuario."
+                    },
+                    usuario: {
+                        required: "Por favor, ingresa el nombre de usuario.",
+                        remote: "Este nombre de usuario ya está registrado. Por favor, elige otro."
+                    },
+                    pasw: {
+                        required: "Por favor, ingresa una contraseña.",
+                        minlength: "La contraseña debe tener al menos 6 caracteres."
+                    },
+                    confPasw: {
+                        required: "Por favor, confirma la contraseña.",
+                        equalTo: "Las contraseñas no coinciden."
                     }
                 },
                 submitHandler: function(form) {
@@ -130,7 +182,7 @@
             });
 
             function cargarRegistros() {
-                let url = "{{ route('usuario.cargarUsuarios') }}"; 
+                let url = "{{ route('usuario.cargarUsuarios') }}";
                 return new Promise((resolve, reject) => {
                     fetch(url, {
                             method: 'POST',
@@ -150,7 +202,7 @@
                         })
                         .then(data => {
                             // Agregar datos a la tabla principal
-                            const table = $('#bootstrap-data-table-concepto').DataTable();
+                            const table = $('#bootstrap-data-table-usuarios').DataTable();
                             table.clear();
                             table.rows.add(data).draw();
 
@@ -170,7 +222,7 @@
                 console.error('Error al inicializar las tablas:', error);
             });
 
-           
+
 
             $('#bootstrap-data-table-usuarios').DataTable({
                 lengthMenu: [
@@ -218,8 +270,8 @@
                 },
                 initComplete: function() {
                     const buttonHtml =
-                        '<button type="button" class="btn btn-primary" id="addCompanyBtnExport" style="margin-left: 10px;"><li class="fa fa-plus"></li> Agregar concepto</button>';
-                    $('#bootstrap-data-table-concepto_filter').append(buttonHtml);
+                        '<button type="button" class="btn btn-primary" id="addCompanyBtnExport" style="margin-left: 10px;"><li class="fa fa-plus"></li> Agregar usuario</button>';
+                    $('#bootstrap-data-table-usuarios_filter').append(buttonHtml);
 
                     $('#addCompanyBtnExport').on('click', function() {
                         var modal = new bootstrap.Modal(document.getElementById(
@@ -233,7 +285,7 @@
                 }
             });
 
-            $('#bootstrap-data-table-concepto').on('click', '.editar-btn', function() {
+            $('#bootstrap-data-table-usuarios').on('click', '.editar-btn', function() {
                 const idConcepto = $(this).data('id');
 
                 var modal = new bootstrap.Modal(document.getElementById("largeModal"), {
@@ -243,7 +295,7 @@
                 modal.show();
                 document.getElementById("accRegistro").value = "editar";
 
-                let url = "{{ route('conceptos.infoConceptos') }}"; 
+                let url = "{{ route('conceptos.infoConceptos') }}";
 
                 fetch(url, {
                         method: 'POST',
@@ -281,7 +333,7 @@
 
             });
 
-            $('#bootstrap-data-table-concepto').on('click', '.eliminar-btn', function() {
+            $('#bootstrap-data-table-usuarios').on('click', '.eliminar-btn', function() {
                 const id = $(this).data('id');
                 Swal.fire({
                     title: '¿Estás seguro?',
@@ -294,8 +346,8 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let url = "{{ route('conceptos.eliminar') }}"; 
-                       
+                        let url = "{{ route('conceptos.eliminar') }}";
+
                         fetch(url, {
                                 method: 'POST',
                                 headers: {
@@ -334,9 +386,9 @@
         });
 
         function cancelRegistro() {
-            const formCompromiso = document.getElementById('formConcepto');
-            formConcepto.reset();
-            document.getElementById('titConcepto').innerText = 'Agregar Concepto';
+            const formUsuario = document.getElementById('formUsuario');
+            formUsuario.reset();
+            document.getElementById('titUsuario').innerText = 'Agregar Usuario';
             document.getElementById('accRegistro').value = 'guardar'
         }
 
@@ -349,7 +401,7 @@
         }
 
         function recargarDataTable() {
-            let url = "{{ route('conceptos.cargarConceptos') }}"; 
+            let url = "{{ route('usuario.cargarUsuarios') }}";
             fetch(url, {
                     method: "POST",
                     headers: {
@@ -365,7 +417,7 @@
                 })
                 .then(data => {
                     // Limpiar el DataTable actual
-                    let table = $('#bootstrap-data-table-concepto').DataTable();
+                    let table = $('#bootstrap-data-table-usuarios').DataTable();
                     table.clear(); // Limpia los datos existentes
 
                     // Agregar las nuevas filas
@@ -377,11 +429,11 @@
         }
 
         function guardarRegistro() {
-            if ($("#formConcepto").valid()) {
-                const formConcepto = document.getElementById('formConcepto');
-                const formData = new FormData(formConcepto);
-                
-                const url = "{{ route('form.guardarConcepto') }}";
+            if ($("#formUsuario").valid()) {
+                const formUsuario = document.getElementById('formUsuario');
+                const formData = new FormData(formUsuario);
+
+                const url = "{{ route('form.guardarUsusario') }}";
 
                 fetch(url, {
                         method: 'POST',

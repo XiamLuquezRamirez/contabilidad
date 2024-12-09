@@ -66,6 +66,8 @@ Route::get('/Usuarios', function () {
     return view('Usuarios');
 });
 Route::post('/usuario/cargarUsuarios', [UsuariosController::class, 'cargarUsuarios'])->name('usuario.cargarUsuarios');
+Route::post('/usuario/verificar-usuario', [UsuariosController::class, 'verificarUsuario'])->name('usuario.verificar-usuario');
+Route::post('/usuario/guardar', [UsuariosController::class, 'guardarUsuario'])->name('form.guardarUsusario');
 
 
 Route::get('/compromiso/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');
