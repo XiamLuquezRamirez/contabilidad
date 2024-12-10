@@ -22,6 +22,7 @@ class Empresas extends Model
                     'tipo_ident_representante' => $request['tipo_ident_representante'] ?? '',
                     'ident_representante' => $request['ident_representante'] ?? '',
                     'email' => $request['email'] ?? '',
+                    'logo' => $request['img'] ?? '',
                     'estado' => 'ACTIVO'
                 ]);
             } else {
@@ -33,7 +34,8 @@ class Empresas extends Model
                         'representante' => $request['representante'] ?? '',
                         'tipo_ident_representante' => $request['tipo_ident_representante'] ?? '',
                         'ident_representante' => $request['ident_representante'] ?? '',
-                        'email' => $request['email'] ?? ''
+                        'email' => $request['email'] ?? '',
+                        'logo' => $request['img'] ?? ''
                     ]);
 
                 $respuesta = $request['idRegistro'];

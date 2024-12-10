@@ -43,20 +43,23 @@ class Usuario extends Model
                     'estado' => 'ACTIVO'
                 ]);
             } else {
-
+                
                 $updateData = [
                     'nombre_usuario' => $request['nombre'],
                     'login_usuario' => $request['usuario'],
-                ];              
+                ];
                 
-                if ($request['pasw']) {
-                    $updateData['password_usuario'] = bcrypt($request['pasw']);
+                // Solo actualiza la contraseña si se proporcionó
+                if (!empty($request['pasw'])) { // Verifica si la contraseña está presente
+                    $updateData['pasword_usuario'] = bcrypt($request['pasw']);
                 }
                 
+                // Actualiza los datos del usuario en la tabla 'users'
                 $respuesta = DB::connection('mysql')->table('users')
                     ->where('id', $request['idRegistro'])
                     ->update($updateData);
-
+                
+                // No sobrescribas `$respuesta`, utiliza una variable diferente si necesitas el ID
                 $respuesta = $request['idRegistro'];
             }
         } catch (Exception $e) {

@@ -5,7 +5,7 @@
 
             <div class="col-sm-7">
                 <a id="menuToggle" class="menutoggle pull-left"><i class="fa fa fa-tasks"></i></a>
-                <div class="header-left">
+                {{-- <div class="header-left">
                                       <div class="dropdown for-notification">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="notification" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fa fa-bell"></i>
@@ -71,7 +71,7 @@
                         </a>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
 
             <div class="col-sm-5">
@@ -82,7 +82,7 @@
                     </a>
 
                     <div class="user-menu dropdown-menu">
-                        <a class="nav-link" href="#"><i class="fa fa-user"></i> Mi perfil</a>
+                        {{-- <a class="nav-link" href="#"><i class="fa fa-user"></i> Mi perfil</a> --}}
                         <a class="nav-link" href="{{ url('/Logout') }}"><i class="fa fa-power-off"></i> Cerrar sesión </a>
                     </div>
                 </div>

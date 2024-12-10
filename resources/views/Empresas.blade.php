@@ -1,6 +1,8 @@
 @extends('Plantilla.principal')
 @section('title', 'Gestionar empresas')
 @section('Contenido')
+    <input type="hidden" id="Ruta" data-ruta="{{ asset('/') }}" />
+
     <div class="breadcrumbs">
         <div class="col-sm-4">
             <div class="page-header float-left">
@@ -74,6 +76,24 @@
                                     <input type="hidden" name="idRegistro" id="idRegistro" />
                                     <input type="hidden" name="accRegistro" id="accRegistro" />
                                     <input type="hidden" name="nitOriginal" id="nitOriginal" />
+                                    <input type="hidden" name="logoCargado" id="logoCargado" />
+
+                                    <div class="form-group">
+                                        <div class="mx-auto d-block">
+                                            <img class="rounded-circle mx-auto d-block" id="previewImage" width="200"
+                                                src="{{ asset('images/empresas/default.png') }}" alt="Card image cap">
+                                            <div class="location text-sm-center">
+                                                <label class="btn btn-xs btn-primary cursor-pointer"
+                                                    for="account-upload">Subir
+                                                    un logo</label>
+                                                <input type="file" name="logoEmpresa" id="account-upload" hidden>
+                                                <button type="button" onclick="clearImage()"
+                                                    class="btn btn-light btn-xs">Limpiar</button>
+                                                <p class="text-fade fs-12 mb-0">Solo JPG, GIF o PNG.
+                                                    Tam. Max. de 800kB</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-group">
                                         <label for="nombre">Nombre</label>
                                         <input type="text" class="form-control" id="nombre" name="nombre"
@@ -170,7 +190,7 @@
                                                 placeholder="Ingrese la cantidad de días" required>
                                         </div>
                                         <div class="col-md-5">
-                                            <label for="estado">Estado:</label><br/>
+                                            <label for="estado">Estado:</label><br />
                                             <select class="form-select" id="estadoPres" name="estadoPres" required>
                                                 <option value="pendiente" selected>Pendiente</option>
                                                 <option value="presentado">Presentado</option>
@@ -190,7 +210,7 @@
                                                 placeholder="Ingrese la cantidad de días" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="estado">Estado:</label><br/>
+                                            <label for="estado">Estado:</label><br />
                                             <select class="form-select" id="estadoVenc" name="estadoVenc" required>
                                                 <option value="pendiente" selected>Pendiente</option>
                                                 <option value="presentado">Presentado</option>
@@ -203,7 +223,7 @@
                                             <textarea id="observacion" class="form-control" name="observacion" rows="4"
                                                 placeholder="Ingrese una observacion del compromiso"></textarea>
                                         </div>
-                                        
+
                                     </div>
                                     <div class="card-footer" style="align-items:flex-end">
                                         <button type="button" id="newRegistroCompromiso" onclick="nuevoCompromiso(0)"
@@ -255,7 +275,7 @@
                     <div class="container mt-4">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="titEmpresaConcepto">Asignar compromiso </h4>
+                                <h4 id="titEmpresaConcepto">Asignar concepto </h4>
                             </div>
                             <div class="card-body">
 
@@ -275,7 +295,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label for="fechaInicio">Fecha de inicial de pago:</label><br />
-                                            <input type="date" id="fechaInicio" name="fechaInicio">
+                                            <input type="date" id="fechaInicio" value="" name="fechaInicio">
                                         </div>
                                         <div class="col-md-4">
                                             <label for="frecuencia">Frecuencia:</label>
@@ -336,7 +356,7 @@
                                                 <th>Fecha de pago</th>
                                                 <th>Estado</th>
                                             </tr>
-                                        </thead> 
+                                        </thead>
                                         <tbody id="trPagos">
                                         </tbody>
                                     </table>
@@ -363,8 +383,18 @@
             let menuP = document.getElementById("empresa");
             menuP.classList.add("active");
 
-            
-            let urlVer = "{{ route('empresa.verificar-nit') }}"; 
+            const fechaInicio = document.getElementById('fechaInicio');
+
+            // Obtener la fecha actual en formato YYYY-MM-DD
+            const hoy = new Date();
+            const fechaActual = hoy.toISOString().split('T')[0];
+
+            // Establecer la fecha actual como valor del campo
+         
+            fechaInicio.value = fechaActual;
+
+
+            let urlVer = "{{ route('empresa.verificar-nit') }}";
             $("#formEmpresa").validate({
                 rules: {
                     nit: {
@@ -452,7 +482,7 @@
                 }
             });
 
-            let urlVerConcepto = "{{ route('empresa.verificarConceptoEmpresa') }}"; 
+            let urlVerConcepto = "{{ route('empresa.verificarConceptoEmpresa') }}";
             $("#formConcepto").validate({
                 rules: {
                     concepto: {
@@ -466,6 +496,9 @@
                                 },
                                 conceptoOriginal: function() {
                                     return $("#conceptoOriginal").val();
+                                },
+                                fechaInicio: function() {
+                                    return $("#fechaInicio").val();
                                 },
                                 idEmpresaConcepto: function() {
                                     return $("#idEmpresaConcepto").val() ||
@@ -502,8 +535,19 @@
                 }
             });
 
-            let url = "{{ route('empresa.cargarEmpresas') }}"; 
-           
+
+            document.getElementById('account-upload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                const previewImage = document.getElementById('previewImage');
+
+                if (file) {
+                    const imageUrl = URL.createObjectURL(file);
+                    previewImage.src = imageUrl;
+                }
+            });
+
+            let url = "{{ route('empresa.cargarEmpresas') }}";
+
             function cargarRegistros() {
                 return new Promise((resolve, reject) => {
                     fetch(url, {
@@ -700,7 +744,7 @@
                 document.getElementById('newRegistroCompromiso').style.display = 'none'
                 document.getElementById('saveRegistroCompromiso').removeAttribute('disabled')
 
-                let url = "{{ route('compromiso.infoAsigCompromiso') }}"; 
+                let url = "{{ route('compromiso.infoAsigCompromiso') }}";
 
                 fetch(url, {
                         method: 'POST',
@@ -754,7 +798,7 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let url = "{{ route('compromiso.eliminarAsignacionCompromiso') }}"; 
+                        let url = "{{ route('compromiso.eliminarAsignacionCompromiso') }}";
                         fetch(url, {
                                 method: 'POST',
                                 headers: {
@@ -870,7 +914,7 @@
                 document.getElementById('newRegistroConcepto').style.display = 'none'
                 document.getElementById('saveRegistroConcepto').removeAttribute('disabled')
 
-                let url = "{{ route('conceptos.infoAsigConceptos') }}"; 
+                let url = "{{ route('conceptos.infoAsigConceptos') }}";
 
                 fetch(url, {
                         method: 'POST',
@@ -910,7 +954,7 @@
 
             $('#bootstrap-data-table-conceptos').on('click', '.eliminarConcepto-btn', function() {
                 const id = $(this).data('id');
-                
+
                 Swal.fire({
                     title: '¿Estás seguro?',
                     text: "¡No podrás revertir esto!",
@@ -922,8 +966,8 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let url = "{{ route('conceptos.eliminarAsignacionConcepto') }}"; 
-                       
+                        let url = "{{ route('conceptos.eliminarAsignacionConcepto') }}";
+
                         fetch(url, {
                                 method: 'POST',
                                 headers: {
@@ -969,8 +1013,8 @@
                 document.getElementById('listadoConceptos').style.display = 'none'
                 document.getElementById('listadoPagosConceptos').style.display = 'initial'
 
-                let url = "{{ route('conceptos.pagosConceptos') }}"; 
-                
+                let url = "{{ route('conceptos.pagosConceptos') }}";
+
                 fetch(url, {
                         method: 'POST',
                         headers: {
@@ -1085,7 +1129,7 @@
 
             // Función para actualizar estado en la base de datos
             function actualizarEstado(idPago, nuevoEstado) {
-                let url = "{{ route('conceptos.actualizarEstado') }}";               
+                let url = "{{ route('conceptos.actualizarEstado') }}";
                 fetch(url, {
                         method: 'POST',
                         headers: {
@@ -1127,7 +1171,7 @@
                 modal.show();
                 document.getElementById("accRegistro").value = "editar";
 
-                let url = "{{ route('empresa.infoEmpresa') }}";  
+                let url = "{{ route('empresa.infoEmpresa') }}";
 
                 fetch(url, {
                         method: 'POST',
@@ -1147,6 +1191,11 @@
                         return response.json();
                     })
                     .then(data => {
+                        var foto = data.logo;
+                        document.getElementById("logoCargado").value = foto
+                        const previewImage = document.getElementById('previewImage');
+                        let url = $('#Ruta').data("ruta");
+                        previewImage.src = url + "images/empresas/" + foto;
 
                         document.getElementById("idRegistro").value = data.id
                         document.getElementById("nitOriginal").value = data.nit
@@ -1180,7 +1229,7 @@
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let url = "{{ route('empresa.eliminar') }}";  
+                        let url = "{{ route('empresa.eliminar') }}";
                         fetch(url, {
                                 method: 'POST',
                                 headers: {
@@ -1307,7 +1356,9 @@
 
             let titulo = document.getElementById("nomEmpresa").value
             document.getElementById("titEmpresaConcepto").innerHTML = `Asignar concepto para ${titulo}`
-
+            const hoy = new Date();
+            const fechaActual = hoy.toISOString().split('T')[0];
+            document.getElementById('fechaInicio').value = fechaActual
         }
 
         function nuevoCompromiso(op) {
@@ -1413,11 +1464,12 @@
             document.getElementById('saveRegistro').removeAttribute('disabled')
             document.getElementById('newRegistro').style.display = 'none'
             document.getElementById('cancelRegistro').style.display = 'initial'
+            
         }
 
         function recargarDataTable() {
 
-            let url = "{{ route('empresa.cargarEmpresas') }}";  
+            let url = "{{ route('empresa.cargarEmpresas') }}";
 
             fetch(url, {
                     method: "POST",
@@ -1448,7 +1500,7 @@
         function recargarDataTableCompromiso() {
 
             let idEmpresa = document.getElementById("idEmpresa").value
-            let url = "{{ route('compromiso.cargarAsigCompromiso') }}";  
+            let url = "{{ route('compromiso.cargarAsigCompromiso') }}";
             fetch(url, {
                     method: "POST",
                     headers: {
@@ -1481,7 +1533,7 @@
         function recargarDataTableConcepto() {
 
             let idEmpresa = document.getElementById("idEmpresaConcepto").value
-            let url = "{{ route('conceptos.cargarAsigConcepto') }}"; 
+            let url = "{{ route('conceptos.cargarAsigConcepto') }}";
             fetch(url, {
                     method: "POST",
                     headers: {
@@ -1647,6 +1699,13 @@
                         console.error("Error al enviar los datos:", error);
                     });
             }
+        }
+
+
+        function clearImage() {
+            const previewImage = document.getElementById('previewImage');
+            let url = $('#Ruta').data("ruta");
+            previewImage.src = url + "images/empresas/default.jpg";
         }
     </script>
 @endsection
