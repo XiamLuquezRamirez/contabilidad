@@ -72,7 +72,9 @@ Route::post('/usuario/infoUsuarios', [UsuariosController::class, 'infoUsuarios']
 Route::post('/usuario/eliminar', [EmpresaController::class, 'eliminarUsuario'])->name('usuario.eliminar');
 
 
-Route::get('/compromiso/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');
+Route::get('/compromiso-avance/datosDashboard', [ApiController::class, 'datosDashboard'])->name('compromiso.datosDashboard');
 Route::get('/compromiso/listTodosCompromisos', [ApiController::class, 'listTodosCompromisos'])->name('compromiso.listTodosCompromisos');
 Route::post('/compromiso/cambiarEstadoCompromiso', [ApiController::class, 'cambiarEstadoCompromiso'])->name('compromiso.cambiarEstadoCompromiso');
-Route::get('/compromiso/avanceContable', [ApiController::class, 'avanceContable'])->name('compromiso.avanceContable');
+Route::get('/avance/avanceContable', [ApiController::class, 'avanceContable'])->name('avance.avanceContable');
+Route::get('/avance/cambiar-estado-pago', [ApiController::class, 'cambiarEstadoPago'])->name('avance.cambiarEstadoPago');
+Route::get('/compromiso-avance/notificaciones', [ApiController::class, 'notificaciones'])->name('compromiso.notificaciones');
