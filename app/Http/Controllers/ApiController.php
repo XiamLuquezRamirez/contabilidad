@@ -15,6 +15,8 @@ class ApiController extends Controller
         ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')
         ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
         ->select('compromiso_empresa.*', 'empresas.nombre', 'compromisos.descripcion AS desc_compromiso', 'compromisos.periocidad AS periodicidad')
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
         ->get();
 
         return response()->json($compromisos)
@@ -66,7 +68,6 @@ class ApiController extends Controller
     }
 
     public function avanceContable(Request $request){
-       
         $anio = $request->input('anio');
 
         $empresas = DB::table('empresas')
@@ -78,6 +79,7 @@ class ApiController extends Controller
             ->join('conceptos_pago', 'conceptos_asignados.id_concepto_pago', 'conceptos_pago.id')
             ->whereYear('fecha_inicio', $anio)
             ->where('id_empresa', $key->id)
+            ->where("conceptos_pago.estado", "ACTIVO")
             ->select('conceptos_asignados.*', 'conceptos_pago.nombre_concepto')
             ->get();
 
@@ -184,21 +186,31 @@ class ApiController extends Controller
         $ultimoDiaSemana = now()->endOfWeek(); 
 
         $compromisos1 = DB::table('compromiso_empresa')
-            ->whereBetween('fecha_presentacion', [$primerDiaSemana, $ultimoDiaSemana])
-            ->count();
+        ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')        
+        ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
+        ->whereBetween('fecha_presentacion', [$primerDiaSemana, $ultimoDiaSemana])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
+        ->count();
 
         $compromisos2 = DB::table('compromiso_empresa')
-            ->whereBetween('fecha_vencimiento', [$primerDiaSemana, $ultimoDiaSemana])
-            ->count();
+        ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')        
+        ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
+        ->whereBetween('fecha_vencimiento', [$primerDiaSemana, $ultimoDiaSemana])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
+        ->count();
         
         $compromisos = $compromisos1 + $compromisos2;
         
         // compromisos vencidos
         $fecha_presentacion_vencida = DB::table('compromiso_empresa')
-        ->join('empresas', 'compromiso_empresa.empresa', '=', 'empresas.id')
-        ->join('compromisos', 'compromiso_empresa.compromiso', '=', 'compromisos.id')
+        ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')
+        ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
         ->whereBetween('fecha_presentacion', [$fecha_inicio, $fecha_fin])
         ->whereIn('estado_pres', ['pendiente', 'vencida'])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
         ->select(
             'compromiso_empresa.*',
             'empresas.nombre as nombre_empresa',
@@ -208,10 +220,12 @@ class ApiController extends Controller
         ->get();
     
         $fecha_vencimiento_vencida = DB::table('compromiso_empresa')
-        ->join('empresas', 'compromiso_empresa.empresa', '=', 'empresas.id')
-        ->join('compromisos', 'compromiso_empresa.compromiso', '=', 'compromisos.id')
+        ->join('empresas', 'compromiso_empresa.empresa', 'empresas.id')
+        ->join('compromisos', 'compromiso_empresa.compromiso', 'compromisos.id')
         ->whereBetween('fecha_vencimiento', [$fecha_inicio, $fecha_fin])
         ->whereIn('estado_venc', ['pendiente', 'vencida'])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
         ->select(
             'compromiso_empresa.*',
             'empresas.nombre as nombre_empresa',
@@ -227,6 +241,8 @@ class ApiController extends Controller
         ->join('empresas', 'empresas.id', 'conceptos_asignados.id_empresa')
         ->where('pagos_pendientes.estado', 'pendiente')
         ->whereBetween('fecha_pago', [$fecha_inicio, $fecha_fin])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("conceptos_pago.estado", "ACTIVO")
         ->select('pagos_pendientes.*', 'conceptos_pago.nombre_concepto', 'empresas.nombre')
         ->orderBy('fecha_pago', 'ASC')
         ->get();
@@ -269,6 +285,8 @@ class ApiController extends Controller
         ->join('empresas', 'compromiso_empresa.empresa', '=', 'empresas.id')
         ->join('compromisos', 'compromiso_empresa.compromiso', '=', 'compromisos.id')
         ->whereIn('estado_pres', ['pendiente', 'vencida'])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
         ->select(
             'compromiso_empresa.*',
             'empresas.nombre as nombre_empresa',
@@ -281,6 +299,8 @@ class ApiController extends Controller
         ->join('empresas', 'compromiso_empresa.empresa', '=', 'empresas.id')
         ->join('compromisos', 'compromiso_empresa.compromiso', '=', 'compromisos.id')
         ->whereIn('estado_venc', ['pendiente', 'vencida'])
+        ->where("empresas.estado", "ACTIVO")
+        ->where("compromisos.estado", "ACTIVO")
         ->select(
             'compromiso_empresa.*',
             'empresas.nombre as nombre_empresa',
@@ -350,6 +370,8 @@ class ApiController extends Controller
         ->join('conceptos_pago', 'conceptos_pago.id', 'conceptos_asignados.id_concepto_pago')
         ->join('empresas', 'empresas.id', 'conceptos_asignados.id_empresa')
         ->where('pagos_pendientes.estado', 'pendiente')
+        ->where("empresas.estado", "ACTIVO")
+        ->where("conceptos_pago.estado", "ACTIVO")
         ->where('fecha_pago', '<=', $fecha_actual)
         ->select('pagos_pendientes.*', 'conceptos_pago.nombre_concepto', 'empresas.nombre', 'conceptos_asignados.dias_anticipacion')
         ->orderBy('fecha_pago', 'ASC')
