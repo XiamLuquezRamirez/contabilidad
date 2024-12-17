@@ -218,7 +218,9 @@ class EmpresaController extends Controller
         }
 
         $data = $request->all();
+
         $respuesta = Empresas::guardarAsigConcepto($data);
+        dd($respuesta);
 
         if ($respuesta) {
             // Recuperar el concepto asignado recién creado

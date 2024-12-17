@@ -199,12 +199,12 @@
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label for="fechaVencimiento">F.vencimiento:</label><br />
+                                            <label for="fechaVencimiento">F. Pago:</label><br />
                                             <input type="date" id="fechaVencimiento" name="fechaVencimiento">
                                         </div>
                                         <div class="col-md-4">
                                             <label for="diasNotificacionVenc" class="form-label">Notificación para
-                                                vencimiento:</label>
+                                                Pago:</label>
                                             <input type="number" class="form-control" id="diasNotificacionVenc"
                                                 name="diasNotificacionVenc" min="1"
                                                 placeholder="Ingrese la cantidad de días" required>
@@ -241,9 +241,9 @@
                                         <thead>
                                             <tr>
                                                 <th>Descripción</th>
-                                                <th>F. presentación</th>
+                                                <th>F. Presentación</th>
                                                 <th>Estado</th>
-                                                <th>F. vencimiento</th>
+                                                <th>F. Pago</th>
                                                 <th>Estado</th>
                                                 <th>Opciones</th>
                                             </tr>
@@ -474,7 +474,7 @@
                         required: "Por favor, seleccione la fecha de presentación"
                     },
                     fechaVencimiento: {
-                        required: "Por favor, seleccione la fecha de vencimiento.",
+                        required: "Por favor, seleccione la fecha de pago.",
                     }
                 },
                 submitHandler: function(form) {
