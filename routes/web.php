@@ -78,3 +78,6 @@ Route::post('/compromiso/cambiarEstadoCompromiso', [ApiController::class, 'cambi
 Route::get('/avance/avanceContable', [ApiController::class, 'avanceContable'])->name('avance.avanceContable');
 Route::get('/avance/cambiar-estado-pago', [ApiController::class, 'cambiarEstadoPago'])->name('avance.cambiarEstadoPago');
 Route::get('/compromiso-avance/notificaciones', [ApiController::class, 'notificaciones'])->name('compromiso.notificaciones');
+Route::post('/notas/guardar-nota', [ApiController::class, 'guardarNota'])->name('notas.guardarNota');
+Route::get('/notas/listar-notas', [ApiController::class, 'listarNotas'])->name('notas.listarNotas');
+Route::post('/notas/editar-nota', [ApiController::class, 'editarNota'])->name('notas.editarNota');

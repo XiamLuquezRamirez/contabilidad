@@ -416,4 +416,98 @@ class ApiController extends Controller
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     }
 
+    public function guardarNota(Request $request)
+    {
+        $descripcion = $request->input('descripcion');
+        $color = $request->input('color');
+        $color_texto = $request->input('color_texto');
+        $fecha = $request->input('fecha');
+        $estado = 1;
+
+        // Insertar en la tabla 'notas' utilizando DB::table()
+        $nota = DB::table('notas')->insert([
+            'descripcion' => $descripcion,
+            'color' => $color,
+            'color_texto' => $color_texto,
+            'fecha' => $fecha,
+            'estado' => $estado
+        ]);
+
+        if ($nota > 0) {
+            $respuesta = [
+                'success' => 1,
+                'message' => 'La nota se guardo correctamente.'
+            ];
+        } else {
+            $respuesta = [
+                'success' => 0,
+                'message' => 'Ocurrió un error, intente nuevamente.'
+            ];
+        }
+
+        return response()->json($respuesta)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+
+    public function listarNotas()
+    {
+        $notas = DB::table('notas')
+        ->where('estado', 1)
+        ->get();
+
+        return response()->json($notas)
+        ->header('Access-Control-Allow-Origin', '*')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
+
+    public function editarNota(Request $request)
+    {
+        $descripcion = $request->input('descripcion');
+        $color = $request->input('color');
+        $color_texto = $request->input('color_texto');
+        $fecha = $request->input('fecha', '');
+        $id = $request->input('id');
+        $estado = $request->input('estado');
+        
+        $nota = DB::table('notas')->where('id', $id)->first();
+        
+        if (!$nota) {
+            $respuesta = [
+                'success' => 0,
+                'message' => 'La nota no existe.'
+            ];
+            return response()->json($respuesta)
+                ->header('Access-Control-Allow-Origin', '*')
+                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        }
+        
+        $updated = DB::table('notas')->where('id', $id)->update([
+            'descripcion' => $descripcion,
+            'color' => $color,
+            'color_texto' => $color_texto,
+            'fecha' => $fecha,
+            'estado' => $estado
+        ]);
+
+        if ($updated) {
+            $respuesta = [
+                'success' => 1,
+                'message' => 'La nota se actualizó correctamente.'
+            ];
+        } else {
+            $respuesta = [
+                'success' => 0,
+                'message' => 'Ocurrió un error, intente nuevamente.'
+            ];
+        }
+
+        return response()->json($respuesta)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+            ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    }
 }
